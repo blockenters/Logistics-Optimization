@@ -50,21 +50,10 @@ st.markdown("""
 ---
 """)
 
-# 창고 코드 매핑 딕셔너리 수정
-WAREHOUSE_MAPPING = {
-    'A': '서울_강남물류',     # 서울 강남구 위치 (서울 시내 배송에 유리)
-    'B': '인천_송도물류',     # 인천 연수구 송도동 위치 (인천/부평 배송에 유리)
-    'C': '경기_광명물류',     # 경기도 광명시 위치 (수도권 전역 배송에 용이)
-    'D': '경기_판교물류'      # 경기도 성남시 판교 위치 (성남/송파 배송에 유리)
-}
-
 # 데이터 로드 함수 수정
 @st.cache_data
 def load_data():
-    df = pd.read_csv('data/logistics_route_data.csv')
-    # 창고 코드를 실제 창고명으로 변환
-    df['origin_warehouse'] = df['origin_warehouse'].map(WAREHOUSE_MAPPING)
-    return df
+    return pd.read_csv('data/logistics_route_data.csv')
 
 # 그래프 생성 함수
 def create_graph(df):
