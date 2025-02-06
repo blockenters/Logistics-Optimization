@@ -261,5 +261,87 @@ def main():
     - **우선순위(priority_level)**: 배송 우선순위 (1: 최우선, 3: 일반, 5: 여유)
     """)
 
+    # 전체 배송 요청 분석 섹션 추가
+    st.subheader("📊 전체 배송 요청 분석")
+    col7, col8 = st.columns(2)
+
+    with col7:
+        # 물류센터별 배송 건수
+        plt.figure(figsize=(10, 6))
+        warehouse_counts = df['origin_warehouse'].value_counts()
+        sns.barplot(x=warehouse_counts.index, y=warehouse_counts.values)
+        plt.title('물류센터별 배송 건수')
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
+        
+        # 물류센터별 분석 설명
+        st.markdown(f"""
+        **🏭 물류센터별 배송 현황**
+        - 가장 많은 배송: {warehouse_counts.index[0]} ({warehouse_counts.values[0]}건)
+        - 가장 적은 배송: {warehouse_counts.index[-1]} ({warehouse_counts.values[-1]}건)
+        - 평균 배송 건수: {warehouse_counts.mean():.1f}건
+        """)
+
+    with col8:
+        # 시간대별 배송 건수
+        plt.figure(figsize=(10, 6))
+        df['hour'] = pd.to_datetime(df['request_time']).dt.hour
+        hourly_counts = df['hour'].value_counts().sort_index()
+        sns.barplot(x=hourly_counts.index, y=hourly_counts.values)
+        plt.title('시간대별 배송 요청 건수')
+        plt.xlabel('시간')
+        plt.ylabel('건수')
+        st.pyplot(plt)
+        
+        # 시간대별 분석 설명
+        peak_hour = hourly_counts.idxmax()
+        st.markdown(f"""
+        **⏰ 시간대별 배송 현황**
+        - 최다 배송 시간대: {peak_hour}시 ({hourly_counts[peak_hour]}건)
+        - 피크 시간(5건 이상): {', '.join(f'{h}시' for h in hourly_counts[hourly_counts >= 5].index)}
+        - 심야 배송(22-06시) 비율: {(df['hour'].between(22, 23) | df['hour'].between(0, 5)).mean()*100:.1f}%
+        """)
+
+    # 배송 지역별 분석
+    st.subheader("🗺 배송 지역별 분석")
+    col9, col10 = st.columns(2)
+
+    with col9:
+        # 목적지별 배송 건수
+        plt.figure(figsize=(10, 6))
+        dest_counts = df['destination_region'].value_counts()
+        sns.barplot(x=dest_counts.index, y=dest_counts.values)
+        plt.title('목적지별 배송 건수')
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
+        
+        # 지역별 분석 설명
+        st.markdown(f"""
+        **🏭 배송 지역 현황**
+        - 최다 배송 지역: {dest_counts.index[0]} ({dest_counts.values[0]}건)
+        - 최소 배송 지역: {dest_counts.index[-1]} ({dest_counts.values[-1]}건)
+        - 장거리 배송(300km 이상) 비율: {(df['distance_km'] >= 300).mean()*100:.1f}%
+        """)
+
+    with col10:
+        # 우선순위별 평균 거리
+        plt.figure(figsize=(10, 6))
+        priority_dist = df.groupby('priority_level')['distance_km'].mean()
+        sns.barplot(x=priority_dist.index, y=priority_dist.values)
+        plt.title('우선순위별 평균 배송 거리')
+        plt.xlabel('우선순위')
+        plt.ylabel('평균 거리 (km)')
+        st.pyplot(plt)
+        
+        # 우선순위별 분석 설명
+        st.markdown(f"""
+        **🎯 우선순위별 배송 특성**
+        - 우선순위 1 평균 거리: {df[df['priority_level']==1]['distance_km'].mean():.1f}km
+        - 우선순위 2 평균 거리: {df[df['priority_level']==2]['distance_km'].mean():.1f}km
+        - 우선순위 3 평균 거리: {df[df['priority_level']==3]['distance_km'].mean():.1f}km
+        
+        *우선순위가 높을수록(1에 가까울수록) 평균 배송 거리가 {priority_dist.iloc[0] > priority_dist.iloc[-1] and "길어지는" or "짧아지는"} 경향이 있습니다.*
+        """)
+
 if __name__ == "__main__":
     main()
