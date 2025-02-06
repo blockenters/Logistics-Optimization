@@ -50,10 +50,21 @@ st.markdown("""
 ---
 """)
 
-# 데이터 로드
+# 창고 코드 매핑 딕셔너리 추가
+WAREHOUSE_MAPPING = {
+    'A': '서울_중앙창고',
+    'B': '인천_물류센터',
+    'C': '경기_허브센터',
+    'D': '김포_메인창고'
+}
+
+# 데이터 로드 함수 수정
 @st.cache_data
 def load_data():
-    return pd.read_csv('data/logistics_route_data.csv')
+    df = pd.read_csv('data/logistics_route_data.csv')
+    # 창고 코드를 실제 창고명으로 변환
+    df['origin_warehouse'] = df['origin_warehouse'].map(WAREHOUSE_MAPPING)
+    return df
 
 # 그래프 생성 함수
 def create_graph(df):
